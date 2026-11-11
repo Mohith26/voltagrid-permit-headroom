@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Permit Headroom · VoltaGrid Client Portal (concept)</title>
+<link rel="icon" href="assets/voltagrid-logo-rev.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><img src="assets/voltagrid-logo-rev.png" alt="VoltaGrid"></div>
+  <button class="burger" aria-label="Menu"><span class="ms">menu</span></button>
+  <div class="top-right">
+    <span class="muted">Northline Compute</span><span class="sep">|</span><a href="#" class="link">Client Admin</a>
+    <span class="ms top-icon">notifications</span><span class="ms top-icon">account_circle</span>
+  </div>
+</header>
+
+<aside class="sidebar">
+  <a class="nav-item"><span class="ms">grid_view</span>Dashboard</a>
+  <div class="nav-group open">
+    <a class="nav-item"><span class="ms">local_shipping</span>Fleet<span class="ms chev">expand_less</span></a>
+    <div class="fleet-list" id="fleetList"></div>
+    <div class="fleet-tools"><span class="ms">settings</span><span class="ms">more_vert</span></div>
+  </div>
+  <div class="nav-sep"></div>
+  <a class="nav-item"><span class="ms">public</span>Assets<span class="ms chev">expand_more</span></a>
+  <a class="nav-item"><span class="ms">table_chart</span>Financials</a>
+  <div class="nav-group open">
+    <a class="nav-item"><span class="ms">flag</span>Reports<span class="ms chev">expand_less</span></a>
+    <a class="nav-sub">Emissions</a>
+    <a class="nav-sub active">Permit Headroom<span class="new">NEW</span></a>
+    <a class="nav-sub">Invoices</a>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="page-head">
+    <div>
+      <h1><span id="siteName">NLC-CORYELLTX</span> <span class="status">(Online)</span></h1>
+      <div class="crumb">Reports <span class="ms">chevron_right</span> Permit Headroom <span class="dot-sep"></span> <span id="permitBasis"></span></div>
+    </div>
+    <div class="controls">
+      <div class="seg" id="polSeg"><button data-v="nox" class="on">NOx (NO2)</button><button data-v="co">CO</button></div>
+      <label class="sel">Risk target
+        <select id="target"><option value="0.01">1%</option><option value="0.05" selected>5%</option><option value="0.1">10%</option></select>
+      </label>
+      <div class="seg" id="planSeg"><button data-v="base">Current plan</button><button data-v="opt" class="on">Headroom plan</button></div>
+    </div>
+  </div>
+
+  <section class="kpis">
+    <div class="kpi"><div class="kpi-title">Rolling 12-Month <span class="pol">NOx</span></div><div class="kpi-num" id="kRolling">-</div><div class="kpi-unit" id="kRollingSub">tons</div><span class="ms kpi-ic">cloud</span></div>
+    <div class="kpi"><div class="kpi-title">Breach Probability</div><div class="kpi-num" id="kBreach">-</div><div class="kpi-unit" id="kBreachSub">current plan, next 12 months</div><span class="ms kpi-ic">error</span></div>
+    <div class="kpi"><div class="kpi-title">First At-Risk Month</div><div class="kpi-num" id="kFirst">-</div><div class="kpi-unit" id="kFirstSub">P(breach) &ge; 5% at month end</div><span class="ms kpi-ic">calendar_month</span></div>
+    <div class="kpi"><div class="kpi-title">Headroom Plan</div><div class="kpi-num" id="kPlan">-</div><div class="kpi-unit" id="kPlanSub">breach probability</div><span class="ms kpi-ic">arrow_forward</span></div>
+  </section>
+
+  <div class="date-row"><span id="asOf"></span><span class="ms kebab">more_vert</span></div>
+
+  <section class="grid">
+    <div class="card chart-card">
+      <div class="card-title">Rolling 12-Month Total vs Permit Cap<span class="legend" id="legend"></span></div>
+      <div class="chart-wrap"><canvas id="rollChart"></canvas></div>
+      <div class="chart-note" id="chartNote"></div>
+    </div>
+    <div class="card block">
+      <div class="block-title">Plan Options<span class="ms">more_vert</span></div>
+      <table class="mini" id="optTable"></table>
+      <div class="block-foot" id="optFoot"></div>
+    </div>
+  </section>
+
+  <section class="gauges">
+    <div class="card gauge-card"><div class="g-title">Peak Permit Use · Current Plan</div><div class="gauge" id="g1"></div></div>
+    <div class="card gauge-card"><div class="g-title">Peak Permit Use · Headroom Plan</div><div class="gauge" id="g2"></div></div>
+    <div class="card gauge-card"><div class="g-title">Model Error (90% Conformal)</div><div class="gauge" id="g3"></div></div>
+    <div class="card gauge-card"><div class="g-title">Backtest Coverage · Held-Out</div><div class="gauge" id="g4"></div></div>
+  </section>
+
+  <section class="grid2">
+    <div class="card block">
+      <div class="block-title">Engine Drivers<span class="sub" id="drvSub"></span><span class="ms">more_vert</span></div>
+      <table class="mini drivers" id="drvTable"></table>
+      <div class="block-foot"><a href="#" class="link" id="drvMore">Show all engines</a></div>
+    </div>
+    <div class="card block">
+      <div class="block-title">Calibration Backtest<span class="sub">13-week error · green 90% conformal · yellow noise-only · gray pts fit, white held out</span><span class="ms">more_vert</span></div>
+      <div class="chart-wrap small"><canvas id="btChart"></canvas></div>
+      <div class="bt-stats" id="btStats"></div>
+    </div>
+  </section>
+
+  <footer class="foot">Unofficial concept demo by Mohith Gajjela. Not affiliated with VoltaGrid. Synthetic data.</footer>
+</main>
+
+<div class="loading" id="loading"><div class="spin"></div><div>Fitting engine models and running scenarios…</div></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
